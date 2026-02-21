@@ -1,23 +1,29 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import {createNativeStackNavigator} from "@react-navigation/native-stack";
+import {NavigationContainer} from "@react-navigation/native";
+import HomeScreen from "./screens/HomeScreen";
+import AddActivityScreen from "./screens/AddActivityScreen";
+
+export type RootStackParamList = {
+    Home: undefined;
+    AddActivity: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Hello World for Routine Keeper!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+    return (
+        <NavigationContainer>
+            <Stack.Navigator
+                initialRouteName="Home"
+                screenOptions={{
+                    headerStyle: {backgroundColor: '#121212'},
+                    headerTintColor: '#efefef',
+                    headerTitleStyle: {fontWeight: 'bold'},
+                }}
+            >
+                <Stack.Screen name="Home" component={HomeScreen} />
+                <Stack.Screen name="AddActivity" component={AddActivityScreen} />
+            </Stack.Navigator>
+        </NavigationContainer>
+    );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    color: '#fff',
-  }
-});
