@@ -1,10 +1,11 @@
 import {FlatList, Text, TouchableOpacity, View, StyleSheet} from "react-native";
 import {NativeStackNavigationProp} from "@react-navigation/native-stack";
 import {RootStackParamList} from "../App";
-import {useEffect, useState} from "react";
+import {useCallback, useState} from "react";
 import {Activity} from "../types/activity";
-import {useNavigation} from "@react-navigation/native";
+import {useFocusEffect, useNavigation} from "@react-navigation/native";
 import {getActivities} from "../storage/activityStorage";
+import {Colors} from "../theme/colors";
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -12,17 +13,20 @@ export default function HomeScreen() {
     const [activities, setActivities] = useState<Activity[]>([]);
     const navigation = useNavigation<HomeScreenNavigationProp>();
 
-    useEffect(() => {
-        const loadActivities = async () => {
-            const stored = await getActivities();
-            setActivities(stored);
-        };
-        loadActivities();
-    }, [activities]);
+    useFocusEffect(
+        useCallback(() => {
+            const loadActivities = async () => {
+                const stored = await getActivities();
+                setActivities(stored);
+            };
+            loadActivities();
+        }, [])
+    );
 
     return (
         <View style={styles.container}>
             <FlatList
+                style={styles.list}
                 data={activities}
                 keyExtractor={item => item.id}
                 renderItem={({item}) => (
@@ -47,16 +51,20 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#121212',
+        backgroundColor: Colors.background,
+    },
+    list: {
+        marginBottom: 20,
     },
     item: {
         padding: 16,
-        margin: 0,
-        backgroundColor: '#151515',
+        margin: 5,
+        marginTop: 0,
+        backgroundColor: Colors.secondary,
         borderRadius: 8,
     },
     itemText: {
-        color: '#999',
+        color: Colors.textSecondary,
         fontSize: 16,
         fontWeight: 'bold',
 
@@ -64,7 +72,7 @@ const styles = StyleSheet.create({
     empty: {
         textAlign: 'center',
         marginTop: 20,
-        color: '#999',
+        color: Colors.textMuted,
     },
     fab: {
         position: 'absolute',
@@ -73,12 +81,12 @@ const styles = StyleSheet.create({
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: '#055c02',
+        backgroundColor: Colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
     },
     fabText: {
-        color: '#fff',
+        color: Colors.textPrimary,
         fontSize: 32,
         lineHeight: 56,
     },

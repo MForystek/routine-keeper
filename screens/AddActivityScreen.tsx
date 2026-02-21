@@ -6,6 +6,7 @@ import {useNavigation} from "@react-navigation/native";
 import {useState} from "react";
 import {generateId} from "../utils/id";
 import {addActivity} from "../storage/activityStorage";
+import {Colors} from "../theme/colors";
 
 type AddApplicationNavigationProp = NativeStackNavigationProp<RootStackParamList, 'AddActivity'>;
 
@@ -70,7 +71,7 @@ export default function AddActivityScreen() {
                 value={name}
                 onChangeText={setName}
                 placeholder="E.g. Drink glass of water"
-                placeholderTextColor="#666"
+                placeholderTextColor={Colors.textMuted}
             />
 
             <Text style={styles.label}>Schedule type</Text>
@@ -96,7 +97,7 @@ export default function AddActivityScreen() {
                         value={targetCount}
                         onChangeText={setTargetCount}
                         keyboardType="numeric"
-                        placeholderTextColor="#666"
+                        placeholderTextColor={Colors.textMuted}
                     />
                 </>
             )}
@@ -109,7 +110,7 @@ export default function AddActivityScreen() {
                         value={targetCount}
                         onChangeText={setTargetCount}
                         keyboardType="numeric"
-                        placeholderTextColor="#666"
+                        placeholderTextColor={Colors.textMuted}
                     />
                 </>
             )}
@@ -146,13 +147,13 @@ export default function AddActivityScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#121212',
+        backgroundColor: Colors.background,
     },
     content: {
         padding: 20,
     },
     label: {
-        color: '#aaa',
+        color: Colors.textSecondary,
         fontSize: 13,
         marginTop: 20,
         marginBottom: 6,
@@ -160,8 +161,8 @@ const styles = StyleSheet.create({
         letterSpacing: 1,
     },
     input: {
-        backgroundColor: '#1e1e1e',
-        color: '#fff',
+        backgroundColor: Colors.secondary,
+        color: Colors.textPrimary,
         borderRadius: 8,
         padding: 12,
         fontSize: 16,
@@ -175,30 +176,30 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 8,
         borderRadius: 20,
-        backgroundColor: '#1e1e1e',
+        backgroundColor: Colors.secondary,
         borderWidth: 1,
-        borderColor: '#333',
+        borderColor: Colors.borderSecondary,
     },
     chipActive: {
-        backgroundColor: '#055c02',
-        borderColor: '#055c02',
+        backgroundColor: Colors.primary,
+        borderColor: Colors.borderPrimary,
     },
     chipText: {
-        color: '#aaa',
+        color: Colors.textSecondary,
         fontSize: 14,
     },
     chipTextActive: {
-        color: '#fff',
+        color: Colors.textPrimary,
     },
     saveButton: {
         marginTop: 40,
-        backgroundColor: '#055c02',
+        backgroundColor: Colors.primary,
         padding: 16,
         borderRadius: 12,
         alignItems: 'center',
     },
     saveButtonText: {
-        color: '#fff',
+        color: Colors.textPrimary,
         fontSize: 16,
         fontWeight: 'bold',
     },
