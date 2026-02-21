@@ -4,8 +4,9 @@ import {RootStackParamList} from "../App";
 import {useCallback, useState} from "react";
 import {Activity} from "../types/activity";
 import {useFocusEffect, useNavigation} from "@react-navigation/native";
-import {getActivities} from "../storage/activityStorage";
+import {deleteActivity, getActivities} from "../storage/activityStorage";
 import {Colors} from "../theme/colors";
+import ActivityCard from "../components/ActivityCard";
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -23,6 +24,11 @@ export default function HomeScreen() {
         }, [])
     );
 
+    async function handleDelete(id: string): Promise<void> {
+        await deleteActivity(id);
+        setActivities(prev => prev.filter(a => a.id !== id));
+    }
+
     return (
         <View style={styles.container}>
             <FlatList
@@ -30,9 +36,10 @@ export default function HomeScreen() {
                 data={activities}
                 keyExtractor={item => item.id}
                 renderItem={({item}) => (
-                    <View style={styles.item}>
-                        <Text style={styles.itemText}>{item.name + ' | ' + item.completedCount + ' out of ' + item.targetCount}</Text>
-                    </View>
+                    <ActivityCard
+                        activity={item}
+                        onDelete={handleDelete}
+                    />
                 )}
                 ListEmptyComponent={
                     <Text style={styles.empty}>No activities yet. Add one!</Text>
@@ -55,19 +62,6 @@ const styles = StyleSheet.create({
     },
     list: {
         marginBottom: 20,
-    },
-    item: {
-        padding: 16,
-        margin: 5,
-        marginTop: 0,
-        backgroundColor: Colors.secondary,
-        borderRadius: 8,
-    },
-    itemText: {
-        color: Colors.textSecondary,
-        fontSize: 16,
-        fontWeight: 'bold',
-
     },
     empty: {
         textAlign: 'center',
