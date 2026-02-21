@@ -4,9 +4,10 @@ import {RootStackParamList} from "../App";
 import {useCallback, useState} from "react";
 import {Activity} from "../types/activity";
 import {useFocusEffect, useNavigation} from "@react-navigation/native";
-import {deleteActivity, getActivities} from "../storage/activityStorage";
+import {deleteActivity, getActivities, updateActivity} from "../storage/activityStorage";
 import {Colors} from "../theme/colors";
 import ActivityCard from "../components/ActivityCard";
+import {resetActivity, shouldReset} from "../utils/resetUtils";
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -16,13 +17,39 @@ export default function HomeScreen() {
 
     useFocusEffect(
         useCallback(() => {
-            const loadActivities = async () => {
-                const stored = await getActivities();
+            const loadAndResetActivities = async (): Promise<void> => {
+                let stored = await getActivities();
+
+                const resetPromises = stored
+                    .filter(a => shouldReset(a))
+                    .map(async a => {
+                        const reset = resetActivity(a);
+                        await updateActivity(reset);
+                        return reset;
+                    });
+
+                const resetActivities = await Promise.all(resetPromises);
+
+                const resetIds = new Set(resetActivities.map(a => a.id));
+                stored = stored.map(a => resetIds.has(a.id)
+                    ? resetActivities.find(r => r.id === a.id)!
+                    : a
+                );
+
                 setActivities(stored);
             };
-            loadActivities();
+            loadAndResetActivities();
         }, [])
     );
+
+    async function handleDone(id: string): Promise<void> {
+        const activity = activities.find(a => a.id === id);
+        if (!activity || activity.completedCount >= activity.targetCount) return;
+
+        const updated = {...activity, completedCount: activity.completedCount + 1};
+        await updateActivity(updated);
+        setActivities(prev => prev.map(a => a.id === id ? updated : a));
+    }
 
     async function handleDelete(id: string): Promise<void> {
         await deleteActivity(id);
@@ -38,6 +65,7 @@ export default function HomeScreen() {
                 renderItem={({item}) => (
                     <ActivityCard
                         activity={item}
+                        onDone={handleDone}
                         onDelete={handleDelete}
                     />
                 )}
