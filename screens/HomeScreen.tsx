@@ -18,7 +18,7 @@ export default function HomeScreen() {
             setActivities(stored);
         };
         loadActivities();
-    }, []);
+    }, [activities]);
 
     return (
         <View style={styles.container}>
@@ -27,7 +27,7 @@ export default function HomeScreen() {
                 keyExtractor={item => item.id}
                 renderItem={({item}) => (
                     <View style={styles.item}>
-                        <Text>{item.name}</Text>
+                        <Text style={styles.itemText}>{item.name + ' | ' + item.completedCount + ' out of ' + item.targetCount}</Text>
                     </View>
                 )}
                 ListEmptyComponent={
@@ -45,9 +45,27 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {flex: 1, backgroundColor: '#1e1e1e'},
-    item: {padding: 16, margin: 0, backgroundColor: '#000', borderRadius: 8},
-    empty: {textAlign: 'center', marginTop: 20, color: '#999'},
+    container: {
+        flex: 1,
+        backgroundColor: '#121212',
+    },
+    item: {
+        padding: 16,
+        margin: 0,
+        backgroundColor: '#151515',
+        borderRadius: 8,
+    },
+    itemText: {
+        color: '#999',
+        fontSize: 16,
+        fontWeight: 'bold',
+
+    },
+    empty: {
+        textAlign: 'center',
+        marginTop: 20,
+        color: '#999',
+    },
     fab: {
         position: 'absolute',
         bottom: 32,
@@ -59,5 +77,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    fabText: {color: '#fff', fontSize: 32, lineHeight: 56},
+    fabText: {
+        color: '#fff',
+        fontSize: 32,
+        lineHeight: 56,
+    },
 });
