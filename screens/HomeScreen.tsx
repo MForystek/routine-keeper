@@ -2,7 +2,7 @@ import {FlatList, Text, TouchableOpacity, View, StyleSheet} from "react-native";
 import {NativeStackNavigationProp} from "@react-navigation/native-stack";
 import {RootStackParamList} from "../App";
 import {useCallback, useState} from "react";
-import {Activity} from "../types/activity";
+import {Activity, DayOfWeek} from "../types/activity";
 import {useFocusEffect, useNavigation} from "@react-navigation/native";
 import {deleteActivity, getActivities, updateActivity} from "../storage/activityStorage";
 import {Colors} from "../theme/colors";
@@ -42,11 +42,27 @@ export default function HomeScreen() {
         }, [])
     );
 
-    async function handleDone(id: string): Promise<void> {
+    async function handleDone(id: string, weekday?: DayOfWeek): Promise<void> {
         const activity = activities.find(a => a.id === id);
-        if (!activity || activity.completedCount >= activity.targetCount) return;
+        if (!activity) return;
 
-        const updated = {...activity, completedCount: activity.completedCount + 1};
+        let updated: Activity;
+
+        if (activity.schedule.type === 'specific_weekdays' && weekday) {
+            if (activity.completedDays.includes(weekday)) return;
+
+            const newCompletedDays = [...activity.completedDays, weekday];
+            updated = {
+                ...activity,
+                completedDays: newCompletedDays,
+                completedCount: newCompletedDays.length,
+            }
+        } else {
+            if (activity.completedCount >= activity.targetCount) return;
+
+            updated = {...activity, completedCount: activity.completedCount + 1};
+        }
+
         await updateActivity(updated);
         setActivities(prev => prev.map(a => a.id === id ? updated : a));
     }

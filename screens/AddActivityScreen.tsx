@@ -7,10 +7,9 @@ import {useState} from "react";
 import {generateId} from "../utils/id";
 import {addActivity} from "../storage/activityStorage";
 import {Colors} from "../theme/colors";
+import {compareDaysOfWeek, WEEKDAYS_IN_ORDER} from "../utils/dayOfWeekUtils";
 
 type AddApplicationNavigationProp = NativeStackNavigationProp<RootStackParamList, 'AddActivity'>;
-
-const DAYS: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
 export default function AddActivityScreen() {
     const navigation = useNavigation<AddApplicationNavigationProp>();
@@ -30,7 +29,7 @@ export default function AddActivityScreen() {
         switch (scheduleType) {
             case 'daily': return {type: 'daily'};
             case 'weekly': return {type: 'weekly', timesPerWeek: parseInt(targetCount) || 1};
-            case 'specific_weekdays': return {type: 'specific_weekdays', days: selectedDays};
+            case 'specific_weekdays': return {type: 'specific_weekdays', days: [...selectedDays].sort(compareDaysOfWeek)};
         }
     }
 
@@ -120,7 +119,7 @@ export default function AddActivityScreen() {
                 <>
                     <Text style={styles.label}>Days</Text>
                     <View style={styles.row}>
-                        {DAYS.map(day => (
+                        {WEEKDAYS_IN_ORDER.map(day => (
                             <TouchableOpacity
                                 style={[styles.chip, selectedDays.includes(day) && styles.chipActive]}
                                 key={day}
