@@ -25,6 +25,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "110e01e3-6566-45be-b2ef-7f83c6b91aa8"
+      }
+    },
+    "owner": "mketsyrof"
   }
 }
