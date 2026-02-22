@@ -57,6 +57,7 @@ export default function AddActivityScreen() {
             targetCount: scheduleType === 'specific_weekdays' ? selectedDays.length : parseInt(targetCount) || 1,
             completedCount: 0,
             lastResetDate: today,
+            completedDays: [],
         };
 
         await addActivity(activity);

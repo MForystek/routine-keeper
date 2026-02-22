@@ -24,6 +24,7 @@ export function resetActivity(activity: Activity): Activity {
     return {
         ...activity,
         completedCount: 0,
-        lastResetDate: new Date().toISOString().split('T')[0]
+        lastResetDate: new Date().toISOString().split('T')[0],
+        completedDays: [],
     };
 }

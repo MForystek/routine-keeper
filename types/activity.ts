@@ -12,4 +12,5 @@ export interface Activity {
     targetCount: number;
     completedCount: number;
     lastResetDate: string;
+    completedDays: DayOfWeek[];
 }
