@@ -1,23 +1,36 @@
 import {Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
 import {RootStackParamList} from "../App";
-import {NativeStackNavigationProp} from "@react-navigation/native-stack";
 import {Activity, DayOfWeek, Schedule} from "../types/activity";
-import {useNavigation} from "@react-navigation/native";
-import {useState} from "react";
+import {RouteProp, useNavigation, useRoute} from "@react-navigation/native";
+import {useEffect, useState} from "react";
 import {generateId} from "../utils/id";
-import {addActivity} from "../storage/activityStorage";
+import {addActivity, updateActivity} from "../storage/activityStorage";
 import {Colors} from "../theme/colors";
 import {compareDaysOfWeek, WEEKDAYS_IN_ORDER} from "../utils/dayOfWeekUtils";
 
-type AddApplicationNavigationProp = NativeStackNavigationProp<RootStackParamList, 'AddActivity'>;
+type AddActivityRouteProp = RouteProp<RootStackParamList, 'AddEditActivity'>;
 
-export default function AddActivityScreen() {
-    const navigation = useNavigation<AddApplicationNavigationProp>();
+export default function AddEditActivityScreen() {
+    const navigation = useNavigation();
+    const route = useRoute<AddActivityRouteProp>();
+    const existingActivity = route.params?.activity;
 
-    const [name, setName] = useState<string>('');
-    const [scheduleType, setScheduleType] = useState<'daily' | 'weekly' | 'specific_weekdays'>('daily');
-    const [selectedDays, setSelectedDays] = useState<DayOfWeek[]>([]);
-    const [targetCount, setTargetCount] = useState<string>('1');
+    const [name, setName] = useState<string>(existingActivity
+        ? existingActivity.name
+        : '');
+    const [scheduleType, setScheduleType] = useState<'daily' | 'weekly' | 'specific_weekdays'>(existingActivity
+        ? existingActivity.schedule.type
+        : 'daily');
+    const [selectedDays, setSelectedDays] = useState<DayOfWeek[]>(existingActivity && existingActivity.schedule.type === 'specific_weekdays'
+        ? existingActivity.schedule.days
+        : []);
+    const [targetCount, setTargetCount] = useState<string>(existingActivity
+        ? existingActivity.targetCount.toString()
+        : '1');
+
+    useEffect(() => {
+        navigation.setOptions({title: existingActivity ? 'Edit Activity' : 'Add Activity'});
+    }, []);
 
     function toggleDay(day: DayOfWeek) {
         setSelectedDays(prev =>
@@ -48,18 +61,23 @@ export default function AddActivityScreen() {
         }
 
         const today = new Date().toISOString().split('T')[0];
+        const isEditing = existingActivity !== undefined;
 
         const activity: Activity = {
-            id: generateId(),
+            id: isEditing ? existingActivity.id : generateId(),
             name: name.trim(),
             schedule: buildSchedule(),
             targetCount: scheduleType === 'specific_weekdays' ? selectedDays.length : parseInt(targetCount) || 1,
-            completedCount: 0,
-            lastResetDate: today,
-            completedDays: [],
+            completedCount: isEditing ? existingActivity.completedCount : 0,
+            lastResetDate: isEditing ? existingActivity.lastResetDate : today,
+            completedDays: isEditing ? existingActivity.completedDays : [],
         };
 
-        await addActivity(activity);
+        if (isEditing) {
+            await updateActivity(activity);
+        } else {
+            await addActivity(activity);
+        }
         navigation.goBack();
     }
 

@@ -12,8 +12,9 @@ import {resetActivity, shouldReset} from "../utils/resetUtils";
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 export default function HomeScreen() {
-    const [activities, setActivities] = useState<Activity[]>([]);
     const navigation = useNavigation<HomeScreenNavigationProp>();
+
+    const [activities, setActivities] = useState<Activity[]>([]);
 
     useFocusEffect(
         useCallback(() => {
@@ -67,6 +68,12 @@ export default function HomeScreen() {
         setActivities(prev => prev.map(a => a.id === id ? updated : a));
     }
 
+    async function handleEdit(id: string): Promise<void> {
+        const activity = activities.find(a => a.id === id);
+        if (!activity) return;
+        navigation.navigate('AddEditActivity', {activity: activity});
+    }
+
     async function handleDelete(id: string): Promise<void> {
         await deleteActivity(id);
         setActivities(prev => prev.filter(a => a.id !== id));
@@ -82,6 +89,7 @@ export default function HomeScreen() {
                     <ActivityCard
                         activity={item}
                         onDone={handleDone}
+                        onEdit={handleEdit}
                         onDelete={handleDelete}
                     />
                 )}
@@ -91,7 +99,7 @@ export default function HomeScreen() {
             />
             <TouchableOpacity
                 style={styles.fab}
-                onPress={() => navigation.navigate('AddActivity')}
+                onPress={() => navigation.navigate('AddEditActivity', {activity: undefined})}
             >
                 <Text style={styles.fabText}>+</Text>
             </TouchableOpacity>

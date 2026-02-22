@@ -1,10 +1,13 @@
 import {Activity, DayOfWeek} from "../types/activity";
 import {Alert, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Colors} from "../theme/colors";
+import ReanimatedSwipeable, {SwipeableMethods} from "react-native-gesture-handler/src/components/ReanimatedSwipeable";
+import {useRef} from "react";
 
 interface ActivityCardProps {
     activity: Activity;
     onDone: (id: string, weekday?: DayOfWeek) => void;
+    onEdit: (id: string) => void;
     onDelete: (id: string) => void;
 }
 
@@ -17,7 +20,9 @@ function formatProgress(activity: Activity): string {
     }
 }
 
-export default function ActivityCard({activity, onDone, onDelete}: ActivityCardProps) {
+export default function ActivityCard({activity, onDone, onEdit, onDelete}: ActivityCardProps) {
+    const swipeableRef = useRef<SwipeableMethods>(null);
+
     const isDone = activity.completedCount >= activity.targetCount;
     const isSpecificDays = activity.schedule.type === 'specific_weekdays';
 
@@ -32,42 +37,61 @@ export default function ActivityCard({activity, onDone, onDelete}: ActivityCardP
         );
     }
 
-    return (
-        <TouchableOpacity
-            style={[styles.card, isDone && styles.cardDone]}
-            onPress={() => !isSpecificDays && !isDone && onDone(activity.id)}
-            onLongPress={handleLongPress}
-            activeOpacity={0.7}
-        >
-            <Text style={[styles.name, isDone && styles.nameDone]}>
-                {activity.name}
-            </Text>
-            {isSpecificDays && activity.schedule.type === 'specific_weekdays' ? (
-                <View style={styles.daysRow}>
-                    {activity.schedule.days.map(day => {
-                        const dayDone = activity.completedDays.includes(day);
-                        return (
-                            <TouchableOpacity
-                                style={[styles.dayChip, dayDone && styles.dayChipDone]}
-                                key={day}
-                                onPress={() => onDone(activity.id, day)}
-                                activeOpacity={0.7}
-                                disabled={isDone || dayDone}
-                            >
-                                <Text style={[styles.dayChipText, dayDone && styles.dayChipTextDone]}>
-                                    {day.charAt(0).toUpperCase() + day.slice(1)}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
-            ) : (
-                <Text style={styles.progress}>
-                    {formatProgress(activity)}
-                </Text>
-            )}
+    function handleEdit(): void {
+        swipeableRef.current?.close();
+        onEdit(activity.id);
+    }
 
-        </TouchableOpacity>
+    function renderRightActions() {
+        return (
+            <View style={styles.editAction}>
+                <Text style={styles.editActionText}>Edit</Text>
+            </View>
+        );
+    }
+
+    return (
+        <ReanimatedSwipeable
+            ref={swipeableRef}
+            renderRightActions={renderRightActions}
+            onSwipeableOpen={handleEdit}
+        >
+            <TouchableOpacity
+                style={[styles.card, isDone && styles.cardDone]}
+                onPress={() => !isSpecificDays && !isDone && onDone(activity.id)}
+                onLongPress={handleLongPress}
+                activeOpacity={0.7}
+            >
+                <Text style={[styles.name, isDone && styles.nameDone]}>
+                    {activity.name}
+                </Text>
+                {isSpecificDays && activity.schedule.type === 'specific_weekdays' ? (
+                    <View style={styles.daysRow}>
+                        {activity.schedule.days.map(day => {
+                            const dayDone = activity.completedDays.includes(day);
+                            return (
+                                <TouchableOpacity
+                                    style={[styles.dayChip, dayDone && styles.dayChipDone]}
+                                    key={day}
+                                    onPress={() => onDone(activity.id, day)}
+                                    activeOpacity={0.7}
+                                    disabled={isDone || dayDone}
+                                >
+                                    <Text style={[styles.dayChipText, dayDone && styles.dayChipTextDone]}>
+                                        {day.charAt(0).toUpperCase() + day.slice(1)}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                ) : (
+                    <Text style={styles.progress}>
+                        {formatProgress(activity)}
+                    </Text>
+                )}
+
+            </TouchableOpacity>
+        </ReanimatedSwipeable>
     );
 }
 
@@ -123,4 +147,21 @@ const styles = StyleSheet.create({
         color: Colors.textPrimary,
         textDecorationLine: 'line-through',
     },
+    editAction: {
+        flex: 1,
+        backgroundColor: Colors.primary,
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+        borderRadius: 8,
+        padding: 16,
+        margin: 5,
+        marginBottom: 0,
+        marginLeft: 0,
+    },
+    editActionText: {
+        color: Colors.textPrimary,
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginRight: 8,
+    }
 });
