@@ -156,7 +156,6 @@ const styles = StyleSheet.create({
         padding: 16,
         margin: 5,
         marginBottom: 0,
-        marginLeft: 0,
     },
     editActionText: {
         color: Colors.textPrimary,
