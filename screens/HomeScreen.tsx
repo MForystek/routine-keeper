@@ -1,20 +1,27 @@
-import {FlatList, Text, TouchableOpacity, View, StyleSheet} from "react-native";
+import {Text, TouchableOpacity, View, StyleSheet, ScrollView} from "react-native";
 import {NativeStackNavigationProp} from "@react-navigation/native-stack";
 import {RootStackParamList} from "../App";
-import {useCallback, useState} from "react";
+import {useCallback, useMemo, useState} from "react";
 import {Activity, DayOfWeek} from "../types/activity";
 import {useFocusEffect, useNavigation} from "@react-navigation/native";
-import {deleteActivity, getActivities, updateActivity} from "../storage/activityStorage";
+import {deleteActivity, getActivities, saveActivities, updateActivity} from "../storage/activityStorage";
 import {Colors} from "../theme/colors";
 import ActivityCard from "../components/ActivityCard";
 import {resetActivity, shouldReset} from "../utils/resetUtils";
+import DraggableFlatList from "react-native-draggable-flatlist/src/components/DraggableFlatList";
+import {DragEndParams, ScaleDecorator} from "react-native-draggable-flatlist";
+import {RenderItemParams} from "react-native-draggable-flatlist/src";
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
-export default function HomeScreen() {
+export function HomeScreen() {
     const navigation = useNavigation<HomeScreenNavigationProp>();
 
     const [activities, setActivities] = useState<Activity[]>([]);
+
+    const undoneActivities = useMemo(() => activities.filter(a => a.completedCount < a.targetCount), [activities]);
+
+    const doneActivities = useMemo(() => activities.filter(a => a.completedCount >= a.targetCount), [activities]);
 
     useFocusEffect(
         useCallback(() => {
@@ -79,31 +86,63 @@ export default function HomeScreen() {
         setActivities(prev => prev.filter(a => a.id !== id));
     }
 
+    async function handleDragEnd({data}: DragEndParams<Activity>): Promise<void> {
+        const mergedLists = [...data, ...doneActivities];
+        await saveActivities(mergedLists);
+        setActivities(mergedLists);
+    }
+
     return (
-        <View style={styles.container}>
-            <FlatList
-                style={styles.list}
-                data={activities}
-                keyExtractor={item => item.id}
-                renderItem={({item}) => (
-                    <ActivityCard
-                        activity={item}
-                        onDone={handleDone}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                    />
-                )}
-                ListEmptyComponent={
-                    <Text style={styles.empty}>No activities yet. Add one!</Text>
-                }
-            />
-            <TouchableOpacity
-                style={styles.fab}
-                onPress={() => navigation.navigate('AddEditActivity', {activity: undefined})}
-            >
-                <Text style={styles.fabText}>+</Text>
-            </TouchableOpacity>
-        </View>
+            <View style={styles.container}>
+                <DraggableFlatList
+                    style={styles.list}
+                    data={undoneActivities}
+                    keyExtractor={item => item.id}
+                    onDragEnd={handleDragEnd}
+                    renderItem={({item, drag, isActive}: RenderItemParams<Activity>) => (
+                        <ScaleDecorator>
+                            <ActivityCard
+                                activity={item}
+                                onDone={handleDone}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                                onDrag={drag}
+                                isDragging={isActive}
+                            />
+                        </ScaleDecorator>
+                    )}
+                    ListEmptyComponent={
+                        <Text style={styles.empty}>No activities yet. Add one!</Text>
+                    }
+                    ListFooterComponent={
+                        doneActivities.length > 0 ? (
+                            <>
+                                <View style={styles.separator}>
+                                    <Text style={styles.separatorText}>Completed</Text>
+                                </View>
+                                {doneActivities.map(item => (
+                                    <ActivityCard
+                                        key={item.id}
+                                        activity={item}
+                                        onDone={handleDone}
+                                        onEdit={handleEdit}
+                                        onDelete={handleDelete}
+                                        onDrag={() => {}}
+                                        isDragging={false}
+                                    />
+                                ))}
+                            </>
+                        ) : null
+                    }
+                    contentContainerStyle={styles.listContent}
+                />
+                <TouchableOpacity
+                    style={styles.fab}
+                    onPress={() => navigation.navigate('AddEditActivity', {activity: undefined})}
+                >
+                    <Text style={styles.fabText}>+</Text>
+                </TouchableOpacity>
+            </View>
     );
 }
 
@@ -114,6 +153,9 @@ const styles = StyleSheet.create({
     },
     list: {
         marginBottom: 20,
+    },
+    listContent: {
+        paddingBottom: 80,
     },
     empty: {
         textAlign: 'center',
@@ -135,5 +177,19 @@ const styles = StyleSheet.create({
         color: Colors.textPrimary,
         fontSize: 32,
         lineHeight: 56,
+    },
+    separator: {
+        marginHorizontal: 5,
+        marginTop: 16,
+        marginBottom: 4,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.borderSecondary,
+        paddingBottom: 4,
+    },
+    separatorText: {
+        color: Colors.textMuted,
+        fontSize: 11,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
 });

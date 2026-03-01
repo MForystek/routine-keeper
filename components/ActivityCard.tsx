@@ -9,43 +9,46 @@ interface ActivityCardProps {
     onDone: (id: string, weekday?: DayOfWeek) => void;
     onEdit: (id: string) => void;
     onDelete: (id: string) => void;
+    onDrag: () => void;
+    isDragging: boolean;
 }
 
-function formatProgress(activity: Activity): string {
-    const {completedCount, targetCount, schedule} = activity;
-    switch (schedule.type) {
-        case 'daily': return `${completedCount} of ${targetCount} for today`;
-        case 'weekly': return `${completedCount} of ${targetCount} for this week`;
-        default: return '';
-    }
-}
-
-export default function ActivityCard({activity, onDone, onEdit, onDelete}: ActivityCardProps) {
+export default function ActivityCard({activity, onDone, onEdit, onDelete, onDrag, isDragging}: ActivityCardProps) {
     const swipeableRef = useRef<SwipeableMethods>(null);
 
     const isDone = activity.completedCount >= activity.targetCount;
     const isSpecificDays = activity.schedule.type === 'specific_weekdays';
 
-    function handleLongPress(): void {
-        Alert.alert(
-            'Delete activity',
-            `Are you sure you want to delete ${activity.name}?`,
-            [
-                {text: 'Cancel', style: 'cancel'},
-                {text: 'Delete', style: 'destructive', onPress: () => onDelete(activity.id)}
-            ]
-        );
-    }
-
-    function handleEdit(): void {
-        swipeableRef.current?.close();
-        onEdit(activity.id);
+    function formatProgress(activity: Activity): string {
+        const {completedCount, targetCount, schedule} = activity;
+        switch (schedule.type) {
+            case 'daily': return `${completedCount} of ${targetCount} for today`;
+            case 'weekly': return `${completedCount} of ${targetCount} for this week`;
+            default: return '';
+        }
     }
 
     function renderRightActions() {
         return (
-            <View style={styles.editAction}>
-                <Text style={styles.editActionText}>Edit</Text>
+            <View style={styles.rightActions}>
+                <TouchableOpacity
+                    style={[styles.actionButton, styles.editAction]}
+                    onPress={() => {
+                        onEdit(activity.id);
+                        swipeableRef.current?.close();
+                    }}
+                >
+                    <Text style={styles.actionText}>Edit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.actionButton, styles.deleteAction]}
+                    onPress={() => {
+                        onDelete(activity.id);
+                        swipeableRef.current?.close();
+                    }}
+                >
+                    <Text style={styles.actionText}>Delete</Text>
+                </TouchableOpacity>
             </View>
         );
     }
@@ -54,12 +57,11 @@ export default function ActivityCard({activity, onDone, onEdit, onDelete}: Activ
         <ReanimatedSwipeable
             ref={swipeableRef}
             renderRightActions={renderRightActions}
-            onSwipeableOpen={handleEdit}
         >
             <TouchableOpacity
-                style={[styles.card, isDone && styles.cardDone]}
+                style={[styles.card, isDone && styles.cardDone, isDragging && styles.cardDragging]}
                 onPress={() => !isSpecificDays && !isDone && onDone(activity.id)}
-                onLongPress={handleLongPress}
+                onLongPress={onDrag}
                 activeOpacity={0.7}
             >
                 <Text style={[styles.name, isDone && styles.nameDone]}>
@@ -147,20 +149,34 @@ const styles = StyleSheet.create({
         color: Colors.textPrimary,
         textDecorationLine: 'line-through',
     },
-    editAction: {
-        flex: 1,
-        backgroundColor: Colors.primary,
-        justifyContent: 'center',
-        alignItems: 'flex-end',
-        borderRadius: 8,
-        padding: 16,
+    rightActions: {
+        flexDirection: 'row',
         margin: 5,
         marginBottom: 0,
+        gap: 4,
     },
-    editActionText: {
+    actionButton: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 72,
+        borderRadius: 8,
+    },
+    editAction: {
+        backgroundColor: Colors.primary,
+    },
+    deleteAction: {
+        backgroundColor: Colors.red,
+    },
+    actionText: {
         color: Colors.textPrimary,
-        fontSize: 18,
         fontWeight: 'bold',
-        marginRight: 8,
-    }
+    },
+    cardDragging: {
+        opacity: 0.9,
+        shadowColor: Colors.black,
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 8,
+    },
 });

@@ -10,4 +10,7 @@ export const Colors = {
 
     borderPrimary: '#055c02',
     borderSecondary: '#333333',
+
+    black: '#000000',
+    red: '#8b0000',
 };
