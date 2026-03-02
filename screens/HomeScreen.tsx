@@ -1,4 +1,4 @@
-import {Text, TouchableOpacity, View, StyleSheet, ScrollView} from "react-native";
+import {Text, TouchableOpacity, View, StyleSheet} from "react-native";
 import {NativeStackNavigationProp} from "@react-navigation/native-stack";
 import {RootStackParamList} from "../App";
 import {useCallback, useMemo, useState} from "react";
@@ -14,7 +14,7 @@ import {RenderItemParams} from "react-native-draggable-flatlist/src";
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
-export function HomeScreen() {
+export default function HomeScreen() {
     const navigation = useNavigation<HomeScreenNavigationProp>();
 
     const [activities, setActivities] = useState<Activity[]>([]);
@@ -112,7 +112,9 @@ export function HomeScreen() {
                         </ScaleDecorator>
                     )}
                     ListEmptyComponent={
-                        <Text style={styles.empty}>No activities yet. Add one!</Text>
+                        doneActivities.length < 1
+                            ? <Text style={styles.empty}>No activities yet. Add one!</Text>
+                            : null
                     }
                     ListFooterComponent={
                         doneActivities.length > 0 ? (

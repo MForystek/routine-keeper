@@ -1,8 +1,9 @@
 import {Activity, DayOfWeek} from "../types/activity";
-import {Alert, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Colors} from "../theme/colors";
 import ReanimatedSwipeable, {SwipeableMethods} from "react-native-gesture-handler/src/components/ReanimatedSwipeable";
 import {useRef} from "react";
+import * as Haptics from "expo-haptics";
 
 interface ActivityCardProps {
     activity: Activity;
@@ -25,6 +26,15 @@ export default function ActivityCard({activity, onDone, onEdit, onDelete, onDrag
             case 'daily': return `${completedCount} of ${targetCount} for today`;
             case 'weekly': return `${completedCount} of ${targetCount} for this week`;
             default: return '';
+        }
+    }
+
+    function handleHaptics(): void {
+        const willComplete = activity.completedCount + 1 >= activity.targetCount;
+        if (willComplete) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } else {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
     }
 
@@ -60,7 +70,12 @@ export default function ActivityCard({activity, onDone, onEdit, onDelete, onDrag
         >
             <TouchableOpacity
                 style={[styles.card, isDone && styles.cardDone, isDragging && styles.cardDragging]}
-                onPress={() => !isSpecificDays && !isDone && onDone(activity.id)}
+                onPress={() => {
+                    if (!isSpecificDays && !isDone) {
+                        handleHaptics();
+                        onDone(activity.id);
+                    }
+                }}
                 onLongPress={onDrag}
                 activeOpacity={0.7}
             >
@@ -75,7 +90,10 @@ export default function ActivityCard({activity, onDone, onEdit, onDelete, onDrag
                                 <TouchableOpacity
                                     style={[styles.dayChip, dayDone && styles.dayChipDone]}
                                     key={day}
-                                    onPress={() => onDone(activity.id, day)}
+                                    onPress={() => {
+                                        handleHaptics();
+                                        onDone(activity.id, day);
+                                    }}
                                     activeOpacity={0.7}
                                     disabled={isDone || dayDone}
                                 >
