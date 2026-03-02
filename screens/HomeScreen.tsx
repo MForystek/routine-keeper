@@ -11,6 +11,7 @@ import {resetActivity, shouldReset} from "../utils/resetUtils";
 import DraggableFlatList from "react-native-draggable-flatlist/src/components/DraggableFlatList";
 import {DragEndParams, ScaleDecorator} from "react-native-draggable-flatlist";
 import {RenderItemParams} from "react-native-draggable-flatlist/src";
+import ActivitiesEmptyState from "../components/ActivitiesEmptyState";
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -112,9 +113,7 @@ export default function HomeScreen() {
                         </ScaleDecorator>
                     )}
                     ListEmptyComponent={
-                        doneActivities.length < 1
-                            ? <Text style={styles.empty}>No activities yet. Add one!</Text>
-                            : null
+                        doneActivities.length < 1 ? <ActivitiesEmptyState /> : null
                     }
                     ListFooterComponent={
                         doneActivities.length > 0 ? (
@@ -158,11 +157,6 @@ const styles = StyleSheet.create({
     },
     listContent: {
         paddingBottom: 80,
-    },
-    empty: {
-        textAlign: 'center',
-        marginTop: 20,
-        color: Colors.textMuted,
     },
     fab: {
         position: 'absolute',
