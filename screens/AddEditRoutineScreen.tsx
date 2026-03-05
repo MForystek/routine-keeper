@@ -1,35 +1,35 @@
 import {Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
 import {RootStackParamList} from "../App";
-import {Activity, DayOfWeek, Schedule} from "../types/activity";
+import {Routine, DayOfWeek, Schedule} from "../types/routine";
 import {RouteProp, useNavigation, useRoute} from "@react-navigation/native";
 import {useEffect, useState} from "react";
 import {generateId} from "../utils/id";
-import {addActivity, updateActivity} from "../storage/activityStorage";
+import {addRoutine, updateRoutine} from "../storage/routineStorage";
 import {Colors} from "../theme/colors";
 import {compareDaysOfWeek, WEEKDAYS_IN_ORDER} from "../utils/dayOfWeekUtils";
 
-type AddActivityRouteProp = RouteProp<RootStackParamList, 'AddEditActivity'>;
+type AddEditRoutineRouteProp = RouteProp<RootStackParamList, 'AddEditRoutine'>;
 
-export default function AddEditActivityScreen() {
+export default function AddEditRoutineScreen() {
     const navigation = useNavigation();
-    const route = useRoute<AddActivityRouteProp>();
-    const existingActivity = route.params?.activity;
+    const route = useRoute<AddEditRoutineRouteProp>();
+    const existingRoutine = route.params?.routine;
 
-    const [name, setName] = useState<string>(existingActivity
-        ? existingActivity.name
+    const [name, setName] = useState<string>(existingRoutine
+        ? existingRoutine.name
         : '');
-    const [scheduleType, setScheduleType] = useState<'daily' | 'weekly' | 'specific_weekdays'>(existingActivity
-        ? existingActivity.schedule.type
+    const [scheduleType, setScheduleType] = useState<'daily' | 'weekly' | 'specific_weekdays'>(existingRoutine
+        ? existingRoutine.schedule.type
         : 'daily');
-    const [selectedDays, setSelectedDays] = useState<DayOfWeek[]>(existingActivity && existingActivity.schedule.type === 'specific_weekdays'
-        ? existingActivity.schedule.days
+    const [selectedDays, setSelectedDays] = useState<DayOfWeek[]>(existingRoutine && existingRoutine.schedule.type === 'specific_weekdays'
+        ? existingRoutine.schedule.days
         : []);
-    const [targetCount, setTargetCount] = useState<string>(existingActivity
-        ? existingActivity.targetCount.toString()
+    const [targetCount, setTargetCount] = useState<string>(existingRoutine
+        ? existingRoutine.targetCount.toString()
         : '1');
 
     useEffect(() => {
-        navigation.setOptions({title: existingActivity ? 'Edit Activity' : 'Add Activity'});
+        navigation.setOptions({title: existingRoutine ? 'Edit Routine' : 'Add Routine'});
     }, []);
 
     function toggleDay(day: DayOfWeek) {
@@ -48,7 +48,7 @@ export default function AddEditActivityScreen() {
 
     async function handleSave() {
         if (!name.trim()) {
-            Alert.alert('Validation', 'Please enter an activity name.');
+            Alert.alert('Validation', 'Please enter a routine name.');
             return;
         }
         if (scheduleType === 'specific_weekdays' && selectedDays.length === 0) {
@@ -61,29 +61,29 @@ export default function AddEditActivityScreen() {
         }
 
         const today = new Date().toISOString().split('T')[0];
-        const isEditing = existingActivity !== undefined;
+        const isEditing = existingRoutine !== undefined;
 
-        const activity: Activity = {
-            id: isEditing ? existingActivity.id : generateId(),
+        const routine: Routine = {
+            id: isEditing ? existingRoutine.id : generateId(),
             name: name.trim(),
             schedule: buildSchedule(),
             targetCount: scheduleType === 'specific_weekdays' ? selectedDays.length : parseInt(targetCount) || 1,
-            completedCount: isEditing ? existingActivity.completedCount : 0,
-            lastResetDate: isEditing ? existingActivity.lastResetDate : today,
-            completedDays: isEditing ? existingActivity.completedDays : [],
+            completedCount: isEditing ? existingRoutine.completedCount : 0,
+            lastResetDate: isEditing ? existingRoutine.lastResetDate : today,
+            completedDays: isEditing ? existingRoutine.completedDays : [],
         };
 
         if (isEditing) {
-            await updateActivity(activity);
+            await updateRoutine(routine);
         } else {
-            await addActivity(activity);
+            await addRoutine(routine);
         }
         navigation.goBack();
     }
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-            <Text style={styles.label}>Activity name</Text>
+            <Text style={styles.label}>Routine name</Text>
             <TextInput
                 style={styles.input}
                 value={name}
@@ -156,7 +156,7 @@ export default function AddEditActivityScreen() {
                 style={styles.saveButton}
                 onPress={handleSave}
             >
-                <Text style={styles.saveButtonText}>Save activity</Text>
+                <Text style={styles.saveButtonText}>Save routine</Text>
             </TouchableOpacity>
         </ScrollView>
     );

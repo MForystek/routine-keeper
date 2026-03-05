@@ -5,7 +5,7 @@ export type Schedule =
     | { type: 'weekly'; timesPerWeek: number}
     | { type: 'specific_weekdays'; days: DayOfWeek[] };
 
-export interface Activity {
+export interface Routine {
     id: string;
     name: string;
     schedule: Schedule;

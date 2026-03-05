@@ -1,4 +1,4 @@
-import {DayOfWeek} from "../types/activity";
+import {DayOfWeek} from "../types/routine";
 
 export const WEEKDAYS_IN_ORDER: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 

@@ -1,11 +1,11 @@
 import {StyleSheet, Text, View} from "react-native";
 import {Colors} from "../theme/colors";
 
-export default function ActivitiesEmptyState() {
+export default function RoutinesEmptyState() {
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>No activities yet</Text>
-            <Text style={styles.subtitle}>Start building your routines.{'\n'}Tap the + button to add your first activity.</Text>
+            <Text style={styles.title}>No routines yet</Text>
+            <Text style={styles.subtitle}>Start building your habits.{'\n'}Tap the + button to add your first routine.</Text>
         </View>
     );
 }

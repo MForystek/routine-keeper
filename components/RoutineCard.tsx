@@ -1,12 +1,12 @@
-import {Activity, DayOfWeek} from "../types/activity";
+import {Routine, DayOfWeek} from "../types/routine";
 import {StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Colors} from "../theme/colors";
 import ReanimatedSwipeable, {SwipeableMethods} from "react-native-gesture-handler/src/components/ReanimatedSwipeable";
 import {useRef} from "react";
 import * as Haptics from "expo-haptics";
 
-interface ActivityCardProps {
-    activity: Activity;
+interface RoutineCardProps {
+    routine: Routine;
     onDone: (id: string, weekday?: DayOfWeek) => void;
     onEdit: (id: string) => void;
     onDelete: (id: string) => void;
@@ -14,14 +14,14 @@ interface ActivityCardProps {
     isDragging: boolean;
 }
 
-export default function ActivityCard({activity, onDone, onEdit, onDelete, onDrag, isDragging}: ActivityCardProps) {
+export default function RoutineCard({routine, onDone, onEdit, onDelete, onDrag, isDragging}: RoutineCardProps) {
     const swipeableRef = useRef<SwipeableMethods>(null);
 
-    const isDone = activity.completedCount >= activity.targetCount;
-    const isSpecificDays = activity.schedule.type === 'specific_weekdays';
+    const isDone = routine.completedCount >= routine.targetCount;
+    const isSpecificDays = routine.schedule.type === 'specific_weekdays';
 
-    function formatProgress(activity: Activity): string {
-        const {completedCount, targetCount, schedule} = activity;
+    function formatProgress(): string {
+        const {completedCount, targetCount, schedule} = routine;
         switch (schedule.type) {
             case 'daily': return `${completedCount} of ${targetCount} for today`;
             case 'weekly': return `${completedCount} of ${targetCount} for this week`;
@@ -30,7 +30,7 @@ export default function ActivityCard({activity, onDone, onEdit, onDelete, onDrag
     }
 
     function handleHaptics(): void {
-        const willComplete = activity.completedCount + 1 >= activity.targetCount;
+        const willComplete = routine.completedCount + 1 >= routine.targetCount;
         if (willComplete) {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         } else {
@@ -44,7 +44,7 @@ export default function ActivityCard({activity, onDone, onEdit, onDelete, onDrag
                 <TouchableOpacity
                     style={[styles.actionButton, styles.editAction]}
                     onPress={() => {
-                        onEdit(activity.id);
+                        onEdit(routine.id);
                         swipeableRef.current?.close();
                     }}
                 >
@@ -53,7 +53,7 @@ export default function ActivityCard({activity, onDone, onEdit, onDelete, onDrag
                 <TouchableOpacity
                     style={[styles.actionButton, styles.deleteAction]}
                     onPress={() => {
-                        onDelete(activity.id);
+                        onDelete(routine.id);
                         swipeableRef.current?.close();
                     }}
                 >
@@ -73,26 +73,26 @@ export default function ActivityCard({activity, onDone, onEdit, onDelete, onDrag
                 onPress={() => {
                     if (!isSpecificDays && !isDone) {
                         handleHaptics();
-                        onDone(activity.id);
+                        onDone(routine.id);
                     }
                 }}
                 onLongPress={onDrag}
                 activeOpacity={0.7}
             >
                 <Text style={[styles.name, isDone && styles.nameDone]}>
-                    {activity.name}
+                    {routine.name}
                 </Text>
-                {isSpecificDays && activity.schedule.type === 'specific_weekdays' ? (
+                {isSpecificDays && routine.schedule.type === 'specific_weekdays' ? (
                     <View style={styles.daysRow}>
-                        {activity.schedule.days.map(day => {
-                            const dayDone = activity.completedDays.includes(day);
+                        {routine.schedule.days.map(day => {
+                            const dayDone = routine.completedDays.includes(day);
                             return (
                                 <TouchableOpacity
                                     style={[styles.dayChip, dayDone && styles.dayChipDone]}
                                     key={day}
                                     onPress={() => {
                                         handleHaptics();
-                                        onDone(activity.id, day);
+                                        onDone(routine.id, day);
                                     }}
                                     activeOpacity={0.7}
                                     disabled={isDone || dayDone}
@@ -106,7 +106,7 @@ export default function ActivityCard({activity, onDone, onEdit, onDelete, onDrag
                     </View>
                 ) : (
                     <Text style={styles.progress}>
-                        {formatProgress(activity)}
+                        {formatProgress()}
                     </Text>
                 )}
 

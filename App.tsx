@@ -1,14 +1,14 @@
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import {NavigationContainer} from "@react-navigation/native";
-import HomeScreen from "./screens/HomeScreen";
-import AddEditActivityScreen from "./screens/AddEditActivityScreen";
+import RoutineScreen from "./screens/RoutineScreen";
+import AddEditRoutineScreen from "./screens/AddEditRoutineScreen";
 import {Colors} from "./theme/colors";
-import {Activity} from "./types/activity";
+import {Routine} from "./types/routine";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 
 export type RootStackParamList = {
-    Home: undefined;
-    AddEditActivity: {activity?: Activity};
+    Routines: undefined;
+    AddEditRoutine: {routine?: Routine};
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -18,15 +18,15 @@ export default function App() {
         <GestureHandlerRootView style={{flex: 1}}>
             <NavigationContainer>
                 <Stack.Navigator
-                    initialRouteName="Home"
+                    initialRouteName="Routines"
                     screenOptions={{
                         headerStyle: {backgroundColor: Colors.background},
                         headerTintColor: Colors.textPrimary,
                         headerTitleStyle: {fontWeight: 'bold'},
                     }}
                 >
-                    <Stack.Screen name="Home" component={HomeScreen} />
-                    <Stack.Screen name="AddEditActivity" component={AddEditActivityScreen} />
+                    <Stack.Screen name="Routines" component={RoutineScreen} />
+                    <Stack.Screen name="AddEditRoutine" component={AddEditRoutineScreen} />
                 </Stack.Navigator>
             </NavigationContainer>
         </GestureHandlerRootView>

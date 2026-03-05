@@ -2,108 +2,108 @@ import {Text, TouchableOpacity, View, StyleSheet} from "react-native";
 import {NativeStackNavigationProp} from "@react-navigation/native-stack";
 import {RootStackParamList} from "../App";
 import {useCallback, useMemo, useState} from "react";
-import {Activity, DayOfWeek} from "../types/activity";
+import {Routine, DayOfWeek} from "../types/routine";
 import {useFocusEffect, useNavigation} from "@react-navigation/native";
-import {deleteActivity, getActivities, saveActivities, updateActivity} from "../storage/activityStorage";
+import {deleteRoutine, getRoutines, saveRoutines, updateRoutine} from "../storage/routineStorage";
 import {Colors} from "../theme/colors";
-import ActivityCard from "../components/ActivityCard";
-import {resetActivity, shouldReset} from "../utils/resetUtils";
+import RoutineCard from "../components/RoutineCard";
+import {resetRoutine, shouldReset} from "../utils/resetUtils";
 import DraggableFlatList from "react-native-draggable-flatlist/src/components/DraggableFlatList";
 import {DragEndParams, ScaleDecorator} from "react-native-draggable-flatlist";
 import {RenderItemParams} from "react-native-draggable-flatlist/src";
-import ActivitiesEmptyState from "../components/ActivitiesEmptyState";
+import RoutinesEmptyState from "../components/RoutinesEmptyState";
 
-type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+type RoutineScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Routines'>;
 
-export default function HomeScreen() {
-    const navigation = useNavigation<HomeScreenNavigationProp>();
+export default function RoutineScreen() {
+    const navigation = useNavigation<RoutineScreenNavigationProp>();
 
-    const [activities, setActivities] = useState<Activity[]>([]);
+    const [routines, setRoutines] = useState<Routine[]>([]);
 
-    const undoneActivities = useMemo(() => activities.filter(a => a.completedCount < a.targetCount), [activities]);
+    const undoneRoutines = useMemo(() => routines.filter(a => a.completedCount < a.targetCount), [routines]);
 
-    const doneActivities = useMemo(() => activities.filter(a => a.completedCount >= a.targetCount), [activities]);
+    const doneRoutines = useMemo(() => routines.filter(a => a.completedCount >= a.targetCount), [routines]);
 
     useFocusEffect(
         useCallback(() => {
-            const loadAndResetActivities = async (): Promise<void> => {
-                let stored = await getActivities();
+            const loadAndResetRoutines = async (): Promise<void> => {
+                let stored = await getRoutines();
 
                 const resetPromises = stored
                     .filter(a => shouldReset(a))
                     .map(async a => {
-                        const reset = resetActivity(a);
-                        await updateActivity(reset);
+                        const reset = resetRoutine(a);
+                        await updateRoutine(reset);
                         return reset;
                     });
 
-                const resetActivities = await Promise.all(resetPromises);
+                const resetRoutines = await Promise.all(resetPromises);
 
-                const resetIds = new Set(resetActivities.map(a => a.id));
+                const resetIds = new Set(resetRoutines.map(a => a.id));
                 stored = stored.map(a => resetIds.has(a.id)
-                    ? resetActivities.find(r => r.id === a.id)!
+                    ? resetRoutines.find(r => r.id === a.id)!
                     : a
                 );
 
-                setActivities(stored);
+                setRoutines(stored);
             };
-            loadAndResetActivities();
+            loadAndResetRoutines();
         }, [])
     );
 
     async function handleDone(id: string, weekday?: DayOfWeek): Promise<void> {
-        const activity = activities.find(a => a.id === id);
-        if (!activity) return;
+        const routine = routines.find(a => a.id === id);
+        if (!routine) return;
 
-        let updated: Activity;
+        let updated: Routine;
 
-        if (activity.schedule.type === 'specific_weekdays' && weekday) {
-            if (activity.completedDays.includes(weekday)) return;
+        if (routine.schedule.type === 'specific_weekdays' && weekday) {
+            if (routine.completedDays.includes(weekday)) return;
 
-            const newCompletedDays = [...activity.completedDays, weekday];
+            const newCompletedDays = [...routine.completedDays, weekday];
             updated = {
-                ...activity,
+                ...routine,
                 completedDays: newCompletedDays,
                 completedCount: newCompletedDays.length,
             }
         } else {
-            if (activity.completedCount >= activity.targetCount) return;
+            if (routine.completedCount >= routine.targetCount) return;
 
-            updated = {...activity, completedCount: activity.completedCount + 1};
+            updated = {...routine, completedCount: routine.completedCount + 1};
         }
 
-        await updateActivity(updated);
-        setActivities(prev => prev.map(a => a.id === id ? updated : a));
+        await updateRoutine(updated);
+        setRoutines(prev => prev.map(a => a.id === id ? updated : a));
     }
 
     async function handleEdit(id: string): Promise<void> {
-        const activity = activities.find(a => a.id === id);
-        if (!activity) return;
-        navigation.navigate('AddEditActivity', {activity: activity});
+        const routine = routines.find(a => a.id === id);
+        if (!routine) return;
+        navigation.navigate('AddEditRoutine', {routine: routine});
     }
 
     async function handleDelete(id: string): Promise<void> {
-        await deleteActivity(id);
-        setActivities(prev => prev.filter(a => a.id !== id));
+        await deleteRoutine(id);
+        setRoutines(prev => prev.filter(a => a.id !== id));
     }
 
-    async function handleDragEnd({data}: DragEndParams<Activity>): Promise<void> {
-        const mergedLists = [...data, ...doneActivities];
-        await saveActivities(mergedLists);
-        setActivities(mergedLists);
+    async function handleDragEnd({data}: DragEndParams<Routine>): Promise<void> {
+        const mergedLists = [...data, ...doneRoutines];
+        await saveRoutines(mergedLists);
+        setRoutines(mergedLists);
     }
 
     return (
             <View style={styles.container}>
                 <DraggableFlatList
                     style={styles.list}
-                    data={undoneActivities}
+                    data={undoneRoutines}
                     keyExtractor={item => item.id}
                     onDragEnd={handleDragEnd}
-                    renderItem={({item, drag, isActive}: RenderItemParams<Activity>) => (
+                    renderItem={({item, drag, isActive}: RenderItemParams<Routine>) => (
                         <ScaleDecorator>
-                            <ActivityCard
-                                activity={item}
+                            <RoutineCard
+                                routine={item}
                                 onDone={handleDone}
                                 onEdit={handleEdit}
                                 onDelete={handleDelete}
@@ -113,18 +113,18 @@ export default function HomeScreen() {
                         </ScaleDecorator>
                     )}
                     ListEmptyComponent={
-                        doneActivities.length < 1 ? <ActivitiesEmptyState /> : null
+                        doneRoutines.length < 1 ? <RoutinesEmptyState /> : null
                     }
                     ListFooterComponent={
-                        doneActivities.length > 0 ? (
+                        doneRoutines.length > 0 ? (
                             <>
                                 <View style={styles.separator}>
                                     <Text style={styles.separatorText}>Completed</Text>
                                 </View>
-                                {doneActivities.map(item => (
-                                    <ActivityCard
+                                {doneRoutines.map(item => (
+                                    <RoutineCard
                                         key={item.id}
-                                        activity={item}
+                                        routine={item}
                                         onDone={handleDone}
                                         onEdit={handleEdit}
                                         onDelete={handleDelete}
@@ -139,7 +139,7 @@ export default function HomeScreen() {
                 />
                 <TouchableOpacity
                     style={styles.fab}
-                    onPress={() => navigation.navigate('AddEditActivity', {activity: undefined})}
+                    onPress={() => navigation.navigate('AddEditRoutine', {routine: undefined})}
                 >
                     <Text style={styles.fabText}>+</Text>
                 </TouchableOpacity>

@@ -1,10 +1,10 @@
-import {Activity} from "../types/activity";
+import {Routine} from "../types/routine";
 
-export function shouldReset(activity: Activity): boolean {
+export function shouldReset(routine: Routine): boolean {
     const today = new Date();
-    const last = new Date(activity.lastResetDate);
+    const last = new Date(routine.lastResetDate);
 
-    if (activity.schedule.type === 'daily') {
+    if (routine.schedule.type === 'daily') {
         return today.toDateString() !== last.toDateString();
     }
 
@@ -20,9 +20,9 @@ export function shouldReset(activity: Activity): boolean {
     return getMonday(today).getTime() !== getMonday(last).getTime();
 }
 
-export function resetActivity(activity: Activity): Activity {
+export function resetRoutine(routine: Routine): Routine {
     return {
-        ...activity,
+        ...routine,
         completedCount: 0,
         lastResetDate: new Date().toISOString().split('T')[0],
         completedDays: [],
