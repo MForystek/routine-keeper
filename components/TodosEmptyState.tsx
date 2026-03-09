@@ -1,11 +1,11 @@
 import {StyleSheet, Text, View} from "react-native";
 import {Colors} from "../theme/colors";
 
-export default function RoutinesEmptyState() {
+export default function TodosEmptyState() {
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>No routines yet</Text>
-            <Text style={styles.subtitle}>Start building your habits.{'\n'}Tap the + button to add your first routine.</Text>
+            <Text style={styles.title}>No todos yet</Text>
+            <Text style={styles.subtitle}>Start adding your tasks.{'\n'}Tap the + button to add your first todo.</Text>
         </View>
     );
 }

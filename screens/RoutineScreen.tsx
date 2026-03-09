@@ -13,16 +13,15 @@ import {DragEndParams, ScaleDecorator} from "react-native-draggable-flatlist";
 import {RenderItemParams} from "react-native-draggable-flatlist/src";
 import RoutinesEmptyState from "../components/RoutinesEmptyState";
 
-type RoutineScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Routines'>;
+type RoutineScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function RoutineScreen() {
     const navigation = useNavigation<RoutineScreenNavigationProp>();
 
     const [routines, setRoutines] = useState<Routine[]>([]);
 
-    const undoneRoutines = useMemo(() => routines.filter(a => a.completedCount < a.targetCount), [routines]);
-
-    const doneRoutines = useMemo(() => routines.filter(a => a.completedCount >= a.targetCount), [routines]);
+    const undoneRoutines = useMemo(() => routines.filter(r => r.completedCount < r.targetCount), [routines]);
+    const doneRoutines = useMemo(() => routines.filter(r => r.completedCount >= r.targetCount), [routines]);
 
     useFocusEffect(
         useCallback(() => {
@@ -30,19 +29,19 @@ export default function RoutineScreen() {
                 let stored = await getRoutines();
 
                 const resetPromises = stored
-                    .filter(a => shouldReset(a))
-                    .map(async a => {
-                        const reset = resetRoutine(a);
+                    .filter(r => shouldReset(r))
+                    .map(async r => {
+                        const reset = resetRoutine(r);
                         await updateRoutine(reset);
                         return reset;
                     });
 
                 const resetRoutines = await Promise.all(resetPromises);
 
-                const resetIds = new Set(resetRoutines.map(a => a.id));
-                stored = stored.map(a => resetIds.has(a.id)
-                    ? resetRoutines.find(r => r.id === a.id)!
-                    : a
+                const resetIds = new Set(resetRoutines.map(r => r.id));
+                stored = stored.map(r => resetIds.has(r.id)
+                    ? resetRoutines.find(reset => reset.id === r.id)!
+                    : r
                 );
 
                 setRoutines(stored);
@@ -52,7 +51,7 @@ export default function RoutineScreen() {
     );
 
     async function handleDone(id: string, weekday?: DayOfWeek): Promise<void> {
-        const routine = routines.find(a => a.id === id);
+        const routine = routines.find(r => r.id === id);
         if (!routine) return;
 
         let updated: Routine;
@@ -73,18 +72,18 @@ export default function RoutineScreen() {
         }
 
         await updateRoutine(updated);
-        setRoutines(prev => prev.map(a => a.id === id ? updated : a));
+        setRoutines(prev => prev.map(r => r.id === id ? updated : r));
     }
 
     async function handleEdit(id: string): Promise<void> {
-        const routine = routines.find(a => a.id === id);
+        const routine = routines.find(r => r.id === id);
         if (!routine) return;
         navigation.navigate('AddEditRoutine', {routine: routine});
     }
 
     async function handleDelete(id: string): Promise<void> {
         await deleteRoutine(id);
-        setRoutines(prev => prev.filter(a => a.id !== id));
+        setRoutines(prev => prev.filter(r => r.id !== id));
     }
 
     async function handleDragEnd({data}: DragEndParams<Routine>): Promise<void> {

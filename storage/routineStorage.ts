@@ -1,5 +1,5 @@
-import {Routine} from "../types/routine";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {Routine} from "../types/routine";
 
 const ROUTINES_KEY = 'routines';
 
@@ -20,12 +20,12 @@ export async function addRoutine(routine: Routine): Promise<void> {
 
 export async function updateRoutine(updated: Routine): Promise<void> {
     const routines = await getRoutines();
-    const newList = routines.map(a => a.id === updated.id ? updated : a);
+    const newList = routines.map(r => r.id === updated.id ? updated : r);
     await saveRoutines(newList);
 }
 
 export async function deleteRoutine(id: string): Promise<void> {
     const routines = await getRoutines();
-    const newList = routines.filter(a => a.id !== id);
+    const newList = routines.filter(r => r.id !== id);
     await saveRoutines(newList);
 }
